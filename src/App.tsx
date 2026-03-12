@@ -9,7 +9,7 @@ import { ArrowRight, Instagram, Linkedin } from 'lucide-react';
 
 // --- Reusable Animation Components ---
 
-const FadeUp = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => {
+const FadeUp: React.FC<{ children: React.ReactNode, delay?: number, className?: string }> = ({ children, delay = 0, className = "" }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   
@@ -26,7 +26,7 @@ const FadeUp = ({ children, delay = 0, className = "" }: { children: React.React
   );
 };
 
-const StaggerContainer = ({ children, className = "", delayChildren = 0.1, staggerChildren = 0.1 }: { children: React.ReactNode, className?: string, delayChildren?: number, staggerChildren?: number }) => {
+const StaggerContainer: React.FC<{ children: React.ReactNode, className?: string, delayChildren?: number, staggerChildren?: number }> = ({ children, className = "", delayChildren = 0.1, staggerChildren = 0.1 }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -53,7 +53,7 @@ const StaggerContainer = ({ children, className = "", delayChildren = 0.1, stagg
   );
 };
 
-const StaggerItem = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
+const StaggerItem: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = "" }) => {
   const variants = {
     hidden: { opacity: 0, y: 30, filter: "blur(5px)" },
     show: { 
@@ -71,7 +71,7 @@ const StaggerItem = ({ children, className = "" }: { children: React.ReactNode, 
   );
 };
 
-const TextReveal = ({ text, className = "" }: { text: string, className?: string }) => {
+const TextReveal: React.FC<{ text: string, className?: string }> = ({ text, className = "" }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   
@@ -348,7 +348,7 @@ export default function App() {
                     whileHover={{ scaleX: 1 }}
                     className="absolute top-0 left-0 w-full h-1 bg-brand-accent origin-left transition-transform duration-300 pointer-events-none"
                   />
-                  <span className="text-white/10 font-display text-8xl absolute -top-4 -right-4 pointer-events-none select-none transition-transform duration-500 group-hover:scale-110">
+                  <span className="text-white/10 font-display text-8xl absolute top-6 right-6 pointer-events-none select-none transition-transform duration-500 group-hover:scale-110">
                     0{i+1}
                   </span>
                   
