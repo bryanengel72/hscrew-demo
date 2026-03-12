@@ -232,8 +232,8 @@ export default function App() {
             initial={{ scale: 1.1, opacity: 0 }}
             animate={{ scale: 1, opacity: 0.5 }}
             transition={{ duration: 1.5, ease: "easeOut" }}
-            src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2574&auto=format&fit=crop" 
-            alt="Intense Headshot" 
+            src="https://bhxccowqxjfevgdeiiet.supabase.co/storage/v1/object/public/images/IMG_4305.JPG" 
+            alt="Hero Headshot" 
             className="w-full h-full object-cover grayscale mix-blend-luminosity"
             referrerPolicy="no-referrer"
           />
