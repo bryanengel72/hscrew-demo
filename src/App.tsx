@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, useInView } from 'motion/react';
 import { ArrowRight, Instagram, Linkedin } from 'lucide-react';
+import { supabase } from './lib/supabase';
 
 // --- Reusable Animation Components ---
 
@@ -120,6 +121,13 @@ const TextReveal: React.FC<{ text: string, className?: string }> = ({ text, clas
 
 export default function App() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [formState, setFormState] = useState({
+    name: '',
+    email: '',
+    sessionType: 'THE HEADSHOT',
+    message: ''
+  });
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const { scrollY } = useScroll();
   
   // Parallax effect for hero image
@@ -134,6 +142,41 @@ export default function App() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitStatus('submitting');
+    
+    try {
+      const { error } = await supabase
+        .from('booking_inquiries')
+        .insert([
+          { 
+            name: formState.name, 
+            email: formState.email, 
+            session_type: formState.sessionType, 
+            message: formState.message 
+          }
+        ]);
+        
+      if (error) throw error;
+      
+      setSubmitStatus('success');
+      setFormState({ name: '', email: '', sessionType: 'THE HEADSHOT', message: '' });
+      setTimeout(() => setSubmitStatus('idle'), 5000);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setSubmitStatus('error');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-brand-black text-white selection:bg-brand-accent selection:text-black font-sans scroll-smooth">
@@ -162,7 +205,7 @@ export default function App() {
             className="hidden md:flex gap-8 font-sans text-sm font-bold uppercase tracking-widest"
           >
             {['about', 'services', 'investment', 'contact'].map((item, i) => (
-              <a key={item} href={`#${item}`} className="relative group overflow-hidden">
+              <a key={item} href={`#${item}`} onClick={(e) => scrollToSection(e, item)} className="relative group overflow-hidden">
                 <span className="block group-hover:-translate-y-full transition-transform duration-300 ease-in-out">{item}</span>
                 <span className="absolute top-0 left-0 block translate-y-full group-hover:translate-y-0 text-brand-accent transition-transform duration-300 ease-in-out">{item}</span>
               </a>
@@ -174,6 +217,7 @@ export default function App() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
             href="#contact" 
+            onClick={(e) => scrollToSection(e, 'contact')}
             className="md:hidden font-sans text-sm font-bold uppercase tracking-widest text-brand-accent border border-brand-accent px-4 py-2 hover:bg-brand-accent hover:text-black transition-colors"
           >
             Book
@@ -229,17 +273,18 @@ export default function App() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               href="#contact" 
+              onClick={(e) => scrollToSection(e, 'contact')}
               className="group relative inline-flex items-center gap-4 bg-brand-accent text-black font-display text-2xl md:text-3xl px-12 py-6 overflow-hidden uppercase tracking-widest cursor-pointer"
             >
               <span className="relative z-10 font-bold">Book Now. Seriously.</span>
               <motion.div 
-                 className="relative z-10"
+                 className="relative z-10 pointer-events-none"
                  animate={{ x: [0, 5, 0] }}
                  transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
               >
-                <ArrowRight className="w-8 h-8" />
+                <ArrowRight className="w-8 h-8 pointer-events-none" />
               </motion.div>
-              <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out z-0" />
+              <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out z-0 pointer-events-none" />
             </motion.a>
           </FadeUp>
         </div>
@@ -469,24 +514,24 @@ export default function App() {
           </FadeUp>
           
           <FadeUp delay={0.2}>
-            <form className="space-y-6 font-sans bg-brand-charcoal/5 p-8 md:p-12 rounded-3xl" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6 font-sans bg-brand-charcoal/5 p-8 md:p-12 rounded-3xl" onSubmit={handleFormSubmit}>
               <div className="grid md:grid-cols-2 gap-6">
                  <div>
                   <label className="block text-sm font-bold uppercase tracking-widest mb-3 text-black/70">Name</label>
-                  <input type="text" className="w-full bg-transparent border-b-2 border-black/20 p-4 pl-0 focus:outline-none focus:border-black transition-colors font-bold text-lg placeholder:text-black/30" placeholder="JOHN DOE" />
+                  <input required type="text" value={formState.name} onChange={e => setFormState({...formState, name: e.target.value})} className="w-full bg-transparent border-b-2 border-black/20 p-4 pl-0 focus:outline-none focus:border-black transition-colors font-bold text-lg placeholder:text-black/30" placeholder="JOHN DOE" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold uppercase tracking-widest mb-3 text-black/70">Email</label>
-                  <input type="email" className="w-full bg-transparent border-b-2 border-black/20 p-4 pl-0 focus:outline-none focus:border-black transition-colors font-bold text-lg placeholder:text-black/30" placeholder="JOHN@EXAMPLE.COM" />
+                  <input required type="email" value={formState.email} onChange={e => setFormState({...formState, email: e.target.value})} className="w-full bg-transparent border-b-2 border-black/20 p-4 pl-0 focus:outline-none focus:border-black transition-colors font-bold text-lg placeholder:text-black/30" placeholder="JOHN@EXAMPLE.COM" />
                 </div>
               </div>
               <div className="pt-4">
                 <label className="block text-sm font-bold uppercase tracking-widest mb-3 text-black/70">Session Type</label>
                 <div className="relative">
-                  <select className="w-full bg-transparent border-b-2 border-black/20 p-4 pl-0 focus:outline-none focus:border-black transition-colors font-bold text-lg appearance-none rounded-none cursor-pointer">
-                    <option>THE HEADSHOT</option>
-                    <option>THE BRAND BLITZ</option>
-                    <option>THE SIGNATURE DAY</option>
+                  <select value={formState.sessionType} onChange={e => setFormState({...formState, sessionType: e.target.value})} className="w-full bg-transparent border-b-2 border-black/20 p-4 pl-0 focus:outline-none focus:border-black transition-colors font-bold text-lg appearance-none rounded-none cursor-pointer">
+                    <option value="THE HEADSHOT">THE HEADSHOT</option>
+                    <option value="THE BRAND BLITZ">THE BRAND BLITZ</option>
+                    <option value="THE SIGNATURE DAY">THE SIGNATURE DAY</option>
                   </select>
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
                     <ArrowRight className="w-5 h-5 rotate-90" />
@@ -495,18 +540,34 @@ export default function App() {
               </div>
               <div className="pt-4">
                 <label className="block text-sm font-bold uppercase tracking-widest mb-3 text-black/70">Message</label>
-                <textarea rows={3} className="w-full bg-transparent border-b-2 border-black/20 p-4 pl-0 focus:outline-none focus:border-black transition-colors font-bold text-lg resize-none placeholder:text-black/30" placeholder="TELL ME ABOUT YOUR GOALS..."></textarea>
+                <textarea rows={3} value={formState.message} onChange={e => setFormState({...formState, message: e.target.value})} className="w-full bg-transparent border-b-2 border-black/20 p-4 pl-0 focus:outline-none focus:border-black transition-colors font-bold text-lg resize-none placeholder:text-black/30" placeholder="TELL ME ABOUT YOUR GOALS..."></textarea>
               </div>
               
+              {submitStatus === 'success' && (
+                <div className="p-4 bg-green-500/10 text-green-700 border border-green-500/20 rounded-md font-bold uppercase tracking-widest text-sm text-center">
+                  Message sent! We'll be in touch soon.
+                </div>
+              )}
+              {submitStatus === 'error' && (
+                <div className="p-4 bg-red-500/10 text-red-700 border border-red-500/20 rounded-md font-bold uppercase tracking-widest text-sm text-center">
+                  Something went wrong. Please try again.
+                </div>
+              )}
+
               <div className="pt-10">
                 <motion.button 
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit" 
-                  className="w-full group relative overflow-hidden bg-black text-brand-accent font-display text-4xl lg:text-5xl py-8 uppercase tracking-widest"
+                  disabled={submitStatus === 'submitting'}
+                  className="w-full group relative overflow-hidden bg-black text-brand-accent font-display text-4xl lg:text-5xl py-8 uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span className="relative z-10 block group-hover:-translate-y-full transition-transform duration-300">BOOK YOUR SESSION</span>
-                  <span className="absolute inset-0 z-10 flex items-center justify-center text-white translate-y-full group-hover:translate-y-0 transition-transform duration-300">LET'S GO <ArrowRight className="w-8 h-8 ml-4"/></span>
+                  <span className="relative z-10 block group-hover:-translate-y-full transition-transform duration-300">
+                    {submitStatus === 'submitting' ? 'SENDING...' : 'BOOK YOUR SESSION'}
+                  </span>
+                  <span className="absolute inset-0 z-10 flex items-center justify-center text-white translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    {submitStatus === 'submitting' ? 'WAIT...' : <>LET'S GO <ArrowRight className="w-8 h-8 ml-4"/></>}
+                  </span>
                 </motion.button>
               </div>
             </form>
